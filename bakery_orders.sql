@@ -33,7 +33,16 @@ CREATE TABLE dbo.BakeryOrders
             WHEN 'Cookie' THEN CAST(3.5 + CASE WHEN HasPhoto = 1 THEN 1.5 ELSE 0.0 END AS DECIMAL(10,2))
         END
     ) PERSISTED,
-    TotalPrice AS (CAST(Quantity AS DECIMAL(10,2)) * UnitPrice) PERSISTED,
+    TotalPrice AS (
+        CAST(Quantity AS DECIMAL(10,2)) *
+        CASE ItemType
+            WHEN 'Cake' THEN CAST(50.0
+                                   + CASE WHEN BaseFlavor = 'Strawberry shortcake' THEN 5.0 ELSE 0.0 END
+                                   + CASE WHEN HasPhoto = 1 THEN 8.0 ELSE 0.0 END AS DECIMAL(10,2))
+            WHEN 'Cupcake' THEN CAST(3.0 AS DECIMAL(10,2))
+            WHEN 'Cookie' THEN CAST(3.5 + CASE WHEN HasPhoto = 1 THEN 1.5 ELSE 0.0 END AS DECIMAL(10,2))
+        END
+    ) PERSISTED,
     CONSTRAINT CK_BakeryOrders_PhotoOnCupcakes CHECK (ItemType <> 'Cupcake' OR HasPhoto = 0),
     CONSTRAINT CK_BakeryOrders_CookieQuantity CHECK (ItemType <> 'Cookie' OR (Quantity BETWEEN 24 AND 500)),
     CONSTRAINT CK_BakeryOrders_CupcakeQuantity CHECK (ItemType <> 'Cupcake' OR (Quantity BETWEEN 12 AND 500)),
