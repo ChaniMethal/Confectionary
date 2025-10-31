@@ -43,10 +43,21 @@ CREATE TABLE dbo.BakeryOrders
             WHEN 'Cookie' THEN CAST(3.5 + CASE WHEN HasPhoto = 1 THEN 1.5 ELSE 0.0 END AS DECIMAL(10,2))
         END
     ) PERSISTED,
+    CONSTRAINT CK_BakeryOrders_CustomerNameNotBlank CHECK (LEN(LTRIM(RTRIM(CustomerName))) > 0),
+    CONSTRAINT CK_BakeryOrders_BaseFlavorNotBlank CHECK (LEN(LTRIM(RTRIM(BaseFlavor))) > 0),
+    CONSTRAINT CK_BakeryOrders_ToppingNotBlank CHECK (Topping IS NULL OR LEN(LTRIM(RTRIM(Topping))) > 0),
+    CONSTRAINT CK_BakeryOrders_CustomSpecsNotBlank CHECK (CustomSpecifications IS NULL OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
+    CONSTRAINT CK_BakeryOrders_OrderDateRange CHECK (OrderDate BETWEEN '2021-01-01' AND '2022-12-31'),
+    CONSTRAINT CK_BakeryOrders_OccasionDomain CHECK (Occasion IN
+        ('Baby', 'Birthday', 'Graduation', 'Company logo', 'Wedding', 'Bar mitzvah', 'Anniversary', 'Engagement', 'Bas mitzvah', 'Event', 'Family party')
+    ),
+    CONSTRAINT CK_BakeryOrders_QuantityPositive CHECK (Quantity > 0),
     CONSTRAINT CK_BakeryOrders_PhotoOnCupcakes CHECK (ItemType <> 'Cupcake' OR HasPhoto = 0),
+    CONSTRAINT CK_BakeryOrders_PhotoRequiresDetails CHECK (HasPhoto = 0 OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
     CONSTRAINT CK_BakeryOrders_CookieQuantity CHECK (ItemType <> 'Cookie' OR (Quantity BETWEEN 24 AND 500)),
     CONSTRAINT CK_BakeryOrders_CupcakeQuantity CHECK (ItemType <> 'Cupcake' OR (Quantity BETWEEN 12 AND 500)),
-    CONSTRAINT CK_BakeryOrders_CakeQuantity CHECK (ItemType <> 'Cake' OR (Quantity BETWEEN 1 AND 500))
+    CONSTRAINT CK_BakeryOrders_CakeQuantity CHECK (ItemType <> 'Cake' OR (Quantity BETWEEN 1 AND 500)),
+    CONSTRAINT UQ_BakeryOrders_Order UNIQUE (CustomerName, OrderDate, Occasion, ItemType)
 );
 GO
 
