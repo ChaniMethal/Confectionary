@@ -54,9 +54,30 @@ CREATE TABLE dbo.BakeryOrders
     CONSTRAINT CK_BakeryOrders_QuantityPositive CHECK (Quantity > 0),
     CONSTRAINT CK_BakeryOrders_PhotoOnCupcakes CHECK (ItemType <> 'Cupcake' OR HasPhoto = 0),
     CONSTRAINT CK_BakeryOrders_PhotoRequiresDetails CHECK (HasPhoto = 0 OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
+    CONSTRAINT CK_BakeryOrders_PhotoDetailsNotNone CHECK (
+        HasPhoto = 0 OR LOWER(LTRIM(RTRIM(CustomSpecifications))) <> 'none'
+    ),
     CONSTRAINT CK_BakeryOrders_CookieQuantity CHECK (ItemType <> 'Cookie' OR (Quantity BETWEEN 24 AND 500)),
+    CONSTRAINT CK_BakeryOrders_CookieQuantityIncrement CHECK (ItemType <> 'Cookie' OR Quantity % 5 = 0),
     CONSTRAINT CK_BakeryOrders_CupcakeQuantity CHECK (ItemType <> 'Cupcake' OR (Quantity BETWEEN 12 AND 500)),
+    CONSTRAINT CK_BakeryOrders_CupcakeEvenQuantity CHECK (ItemType <> 'Cupcake' OR Quantity % 2 = 0),
     CONSTRAINT CK_BakeryOrders_CakeQuantity CHECK (ItemType <> 'Cake' OR (Quantity BETWEEN 1 AND 500)),
+    CONSTRAINT CK_BakeryOrders_BaseFlavorByType CHECK (
+        (ItemType = 'Cake' AND BaseFlavor IN (
+            'Banana',
+            'Chocolate',
+            'Chocolate peanut butter',
+            'Strawberry shortcake',
+            'Vanilla'
+        ))
+        OR (ItemType = 'Cookie' AND BaseFlavor IN ('Sugar'))
+        OR (ItemType = 'Cupcake' AND BaseFlavor IN ('Banana', 'Chocolate', 'Vanilla'))
+    ),
+    CONSTRAINT CK_BakeryOrders_ToppingByType CHECK (
+        (ItemType = 'Cake' AND Topping IN ('Caramel', 'Chocolate', 'None', 'Peanut butter', 'Vanilla'))
+        OR (ItemType = 'Cookie' AND Topping IN ('Fondant', 'Royal icing'))
+        OR (ItemType = 'Cupcake' AND Topping IN ('Chocolate', 'Coconut', 'Peanut butter', 'Strawberry', 'Vanilla'))
+    ),
     CONSTRAINT UQ_BakeryOrders_Order UNIQUE (CustomerName, OrderDate, Occasion, ItemType)
 );
 GO
