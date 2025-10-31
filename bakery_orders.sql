@@ -14,16 +14,18 @@ GO
 CREATE TABLE dbo.BakeryOrders
 (
     OrderID             INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerName        NVARCHAR(100)      NOT NULL,
+    CustomerName        NVARCHAR(100)      NOT NULL CHECK (LEN(LTRIM(RTRIM(CustomerName))) > 0),
     Branch              NVARCHAR(50)       NOT NULL CHECK (Branch IN ('Brooklyn', 'Lakewood')),
-    OrderDate           DATE               NOT NULL,
+    OrderDate           DATE               NOT NULL CHECK (OrderDate BETWEEN '2021-01-01' AND '2022-12-31'),
     ItemType            NVARCHAR(10)       NOT NULL CHECK (ItemType IN ('Cake', 'Cookie', 'Cupcake')),
-    BaseFlavor          NVARCHAR(50)       NOT NULL,
-    Topping             NVARCHAR(50)       NULL,
+    BaseFlavor          NVARCHAR(50)       NOT NULL CHECK (LEN(LTRIM(RTRIM(BaseFlavor))) > 0),
+    Topping             NVARCHAR(50)       NULL CHECK (Topping IS NULL OR LEN(LTRIM(RTRIM(Topping))) > 0),
     HasPhoto            BIT                NOT NULL,
-    CustomSpecifications NVARCHAR(500)     NULL,
-    Occasion            NVARCHAR(100)      NOT NULL,
-    Quantity            INT                NOT NULL,
+    CustomSpecifications NVARCHAR(500)     NULL CHECK (CustomSpecifications IS NULL OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
+    Occasion            NVARCHAR(100)      NOT NULL CHECK (Occasion IN
+        ('Baby', 'Birthday', 'Graduation', 'Company logo', 'Wedding', 'Bar mitzvah', 'Anniversary', 'Engagement', 'Bas mitzvah', 'Event', 'Family party')
+    ),
+    Quantity            INT                NOT NULL CHECK (Quantity > 0),
     UnitPrice AS (
         CASE ItemType
             WHEN 'Cake' THEN CAST(50.0
@@ -43,15 +45,6 @@ CREATE TABLE dbo.BakeryOrders
             WHEN 'Cookie' THEN CAST(3.5 + CASE WHEN HasPhoto = 1 THEN 1.5 ELSE 0.0 END AS DECIMAL(10,2))
         END
     ) PERSISTED,
-    CONSTRAINT CK_BakeryOrders_CustomerNameNotBlank CHECK (LEN(LTRIM(RTRIM(CustomerName))) > 0),
-    CONSTRAINT CK_BakeryOrders_BaseFlavorNotBlank CHECK (LEN(LTRIM(RTRIM(BaseFlavor))) > 0),
-    CONSTRAINT CK_BakeryOrders_ToppingNotBlank CHECK (Topping IS NULL OR LEN(LTRIM(RTRIM(Topping))) > 0),
-    CONSTRAINT CK_BakeryOrders_CustomSpecsNotBlank CHECK (CustomSpecifications IS NULL OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
-    CONSTRAINT CK_BakeryOrders_OrderDateRange CHECK (OrderDate BETWEEN '2021-01-01' AND '2022-12-31'),
-    CONSTRAINT CK_BakeryOrders_OccasionDomain CHECK (Occasion IN
-        ('Baby', 'Birthday', 'Graduation', 'Company logo', 'Wedding', 'Bar mitzvah', 'Anniversary', 'Engagement', 'Bas mitzvah', 'Event', 'Family party')
-    ),
-    CONSTRAINT CK_BakeryOrders_QuantityPositive CHECK (Quantity > 0),
     CONSTRAINT CK_BakeryOrders_PhotoOnCupcakes CHECK (ItemType <> 'Cupcake' OR HasPhoto = 0),
     CONSTRAINT CK_BakeryOrders_PhotoRequiresDetails CHECK (HasPhoto = 0 OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
     CONSTRAINT CK_BakeryOrders_PhotoDetailsNotNone CHECK (
