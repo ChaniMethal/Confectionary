@@ -18,7 +18,17 @@ CREATE TABLE dbo.BakeryOrders
     Branch              NVARCHAR(50)       NOT NULL CHECK (Branch IN ('Brooklyn', 'Lakewood')),
     OrderDate           DATE               NOT NULL CHECK (OrderDate BETWEEN '2021-01-01' AND '2022-12-31'),
     ItemType            NVARCHAR(10)       NOT NULL CHECK (ItemType IN ('Cake', 'Cookie', 'Cupcake')),
-    BaseFlavor          NVARCHAR(50)       NOT NULL CHECK (LEN(LTRIM(RTRIM(BaseFlavor))) > 0),
+    BaseFlavor          NVARCHAR(50)       NOT NULL CHECK (
+        LEN(LTRIM(RTRIM(BaseFlavor))) > 0
+        AND BaseFlavor IN (
+            'Strawberry shortcake',
+            'Chocolate',
+            'Vanilla',
+            'Sugar',
+            'Chocolate peanut butter',
+            'Banana'
+        )
+    ),
     Topping             NVARCHAR(50)       NULL CHECK (Topping IS NULL OR LEN(LTRIM(RTRIM(Topping))) > 0),
     HasPhoto            BIT                NOT NULL,
     CustomSpecifications NVARCHAR(500)     NULL CHECK (CustomSpecifications IS NULL OR LEN(LTRIM(RTRIM(CustomSpecifications))) > 0),
